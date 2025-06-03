@@ -1,11 +1,41 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
   <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Latest Earthquake in Europe</title>
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Leaflet CSS -->
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+      integrity="sha256-sA+Rl+HENRj/2tyGzG1feyuLU6VHTR3Xu1CSZZ3wtH0="
+      crossorigin=""
+    />
+    <!-- Leaflet JS -->
+    <script
+      src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+      integrity="sha256-o9N1jKxFUt0QXt2/Oy7bNpzzT45RkQrryZcypkXqPEo="
+      crossorigin=""
+    ></script>
+
+    <style>
+      #map {
+        height: 400px;
+        width: 100%;
+      }
+    </style>
   </head>
-  <body>
-    <h1>Latest Earthquake in Europe (Mag ≥ 3)</h1>
-    <div id="quake-info">Loading...</div>
+
+  <body class="bg-gray-100 text-gray-900 font-sans p-6">
+    <div class="max-w-2xl mx-auto bg-white rounded-2xl shadow-xl p-6 space-y-4">
+      <h1 class="text-2xl font-bold">🌍 Latest Earthquake in Europe (Mag ≥ 3)</h1>
+      <div id="quake-info" class="text-lg text-blue-700">Loading...</div>
+      <div id="map" class="rounded-xl border border-gray-300"></div>
+    </div>
 
     <script>
       async function fetchEarthquakes() {
@@ -14,28 +44,38 @@
         );
         const data = await res.json();
 
-        // Filter for rough European region (longitude -30 to 60, latitude 30 to 70)
+        // Filter for Europe (rough bounding box)
         const europeQuakes = data.features.filter(f => {
           const [lon, lat] = f.geometry.coordinates;
           return lat >= 30 && lat <= 70 && lon >= -30 && lon <= 60;
         });
 
         if (europeQuakes.length === 0) {
-          document.getElementById("quake-info").textContent = "No recent European quakes ≥ 3.";
+          document.getElementById("quake-info").textContent =
+            "No recent European quakes ≥ 3.";
           return;
         }
 
         const latest = europeQuakes[0];
-        const place = latest.properties.place;
-        const mag = latest.properties.mag;
-        const time = new Date(latest.properties.time).toLocaleString();
+        const { place, mag, time, url } = latest.properties;
+        const [lon, lat] = latest.geometry.coordinates;
 
-        document.getElementById("quake-info").textContent = 
-          `Mag ${mag} — ${place} at ${time}`;
+        const readableTime = new Date(time).toLocaleString();
+        const info = `Mag ${mag} — ${place} at ${readableTime}`;
+
+        document.getElementById("quake-info").innerHTML =
+          info + ` <a href="${url}" class="text-blue-500 underline" target="_blank">(details)</a>`;
+
+        // Initialize map
+        const map = L.map('map').setView([lat, lon], 5);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+          attribution:
+            '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+        }).addTo(map);
+        L.marker([lat, lon]).addTo(map).bindPopup(info).openPopup();
       }
 
       fetchEarthquakes();
     </script>
   </body>
 </html>
-
