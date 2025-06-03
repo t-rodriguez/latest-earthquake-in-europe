@@ -67,12 +67,14 @@
           info + ` <a href="${url}" class="text-blue-500 underline" target="_blank">(details)</a>`;
 
         // Initialize map
-        const map = L.map('map').setView([lat, lon], 5);
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-          attribution:
-            '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-        }).addTo(map);
-        L.marker([lat, lon]).addTo(map).bindPopup(info).openPopup();
+        window.addEventListener("load", () => {
+          const map = L.map('map').setView([lat, lon], 5);
+          L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution:
+              '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+          }).addTo(map);
+          L.marker([lat, lon]).addTo(map).bindPopup(info).openPopup();
+        });
       }
 
       fetchEarthquakes();
