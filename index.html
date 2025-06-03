@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Latest Earthquake in Europe</title>
+  </head>
+  <body>
+    <h1>Latest Earthquake in Europe (Mag ≥ 3)</h1>
+    <div id="quake-info">Loading...</div>
+
+    <script>
+      async function fetchEarthquakes() {
+        const res = await fetch(
+          'https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&minmagnitude=3&orderby=time&limit=20'
+        );
+        const data = await res.json();
+
+        // Filter for rough European region (longitude -30 to 60, latitude 30 to 70)
+        const europeQuakes = data.features.filter(f => {
+          const [lon, lat] = f.geometry.coordinates;
+          return lat >= 30 && lat <= 70 && lon >= -30 && lon <= 60;
+        });
+
+        if (europeQuakes.length === 0) {
+          document.getElementById("quake-info").textContent = "No recent European quakes ≥ 3.";
+          return;
+        }
+
+        const latest = europeQuakes[0];
+        const place = latest.properties.place;
+        const mag = latest.properties.mag;
+        const time = new Date(latest.properties.time).toLocaleString();
+
+        document.getElementById("quake-info").textContent = 
+          `Mag ${mag} — ${place} at ${time}`;
+      }
+
+      fetchEarthquakes();
+    </script>
+  </body>
+</html>
+
